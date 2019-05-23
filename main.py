@@ -1,7 +1,7 @@
 # Entrance for runnning 
 import click
 
-from src.data import modis_download
+from src.data.modis_download import ModisDownloader
 
 @click.group()
 def cli():
@@ -9,7 +9,7 @@ def cli():
 
 @click.command()
 def download():
-    modis_download.modis_download()
+    raise NotImplementedError()
 
 @click.command()
 def train():
