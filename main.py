@@ -8,10 +8,16 @@ from src.data.modis_download import ModisDownloader, DEF_DOWNLOAD_CELLS, DEF_DOW
 def cli():
     pass
 
+MODIS_NDVI_PRODUCT_DICT = {
+    '250': ModisDownloader.DATA_PRODUCT_250M,
+    '500': ModisDownloader.DATA_PRODUCT_500M,
+}
+
 @click.command()
-def download():
+@click.argument('product', type=click.Choice(MODIS_NDVI_PRODUCT_DICT.keys()))
+def download(product):
     downloader = ModisDownloader(DEF_DOWNLOAD_CELLS, DEF_DOWNLOAD_DATES, MODIS_DOWNLOAD_DIR)
-    downloader.download(ModisDownloader.DATA_PRODUCT_500M)
+    downloader.download(MODIS_NDVI_PRODUCT_DICT[product])
 
 @click.command()
 def train():
