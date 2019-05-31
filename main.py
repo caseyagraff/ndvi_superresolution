@@ -1,7 +1,8 @@
 # Entrance for runnning 
 import click
+import datetime as dt
 
-from src.data.modis_download import ModisDownloader
+from src.data.modis_download import ModisDownloader, DEF_DOWNLOAD_CELLS, DEF_DOWNLOAD_DATES, MODIS_DOWNLOAD_DIR
 
 @click.group()
 def cli():
@@ -9,7 +10,8 @@ def cli():
 
 @click.command()
 def download():
-    raise NotImplementedError()
+    downloader = ModisDownloader(DEF_DOWNLOAD_CELLS, DEF_DOWNLOAD_DATES, MODIS_DOWNLOAD_DIR)
+    downloader.download(ModisDownloader.DATA_PRODUCT_500M)
 
 @click.command()
 def train():

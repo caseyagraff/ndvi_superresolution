@@ -165,3 +165,6 @@ venv.bak/
 .idea/modules.xml
 .idea/ndvi_superresolution.iml
 .idea/vcs.xml
+
+# Project specific
+/data
