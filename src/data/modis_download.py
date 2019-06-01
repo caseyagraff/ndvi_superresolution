@@ -11,8 +11,9 @@ from ..utils.urls import get_url_paths
 
 def make_def_download_dates():
     leap_years = (2004, 2008, 2012, 2016)
-    years = list(range(2003, 2017+1))
-    dates = ((1, 9), (4, 15), (7, 4), (10, 24))
+    years = list(range(2004, 2013+1))
+    #dates = ((1, 9), (4, 15), (7, 4), (10, 24))
+    dates = ((1, 9), (7, 4))
 
     download_dates = []
     for year in years:
@@ -23,10 +24,10 @@ def make_def_download_dates():
     return download_dates
 
 DEF_DOWNLOAD_CELLS = (
-        (8,6), 
+        #(8,6), 
         (8,5), (9,5), (10,5), (11,5), 
         (9,4), (10,4), (11,4), (12,4),
-        (10,3), (11,3), (12,3), (13,3)
+        #(10,3), (11,3), (12,3), (13,3)
         )
 
 DEF_DOWNLOAD_DATES = make_def_download_dates()
