@@ -6,4 +6,6 @@ conda install -c conda-forge pyhdf
 conda install -c pytorch pytorch
 conda install matplotlib
 conda install click
-pip install bs4
+conda install beautifulsoup4
+conda install requests
+conda install tqdm
