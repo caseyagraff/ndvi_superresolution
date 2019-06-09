@@ -1,4 +1,35 @@
 import numpy as np
+import pickle
+import os
+from pyhdf.SD import SD, SDC
+from pyhdf import HDF
+
+'''
+Load cell data from .hdf files. Automatically determines 250m vs 500m resolution.
+Input:
+filename: string
+Returns:
+data: returns as a numpy array of dimensions 4800x4800 for 250m resolution, and 2400x2400 for 500m resolution.
+'''
+def load_data_from_files(filename):
+    if not os.path.exists(filename):
+        print("File {} does not exist, cannot load data.".format(filename))
+        return
+    elif not HDF.ishdf(filename):
+        print("File {} is not in hdf4 file format, cannot load data.".format(filename))
+        return
+
+    f = SD(filename, SDC.READ)
+    data_field = None
+    for i, d in enumerate(f.datasets()):
+        # print("{0}. {1}".format(i+1,d))
+        if "NDVI" in d:
+            data_field = d
+
+    ndvi_data = f.select(data_field)
+    print("NDVI dimensions: {}".format(ndvi_data.dimensions()))
+    data = np.array(ndvi_data.get())
+    return data
 
 '''
 Takes in a N by N numpy array of a single cell and outputs the patches for that cell
