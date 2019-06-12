@@ -68,7 +68,7 @@ filters out patches which are mostly water by using the low-res image only.
 def filter_water(low_res, high_res, metadata_list):
     if low_res.shape[0] != high_res.shape[0]:
         raise ValueError('Low and high res patch arrays do not have the same number of patches')
-    idxs_mostly_land = np.array([i for i in range(low_res.shape[0]) if is_mostly_water(low_res[i])])
+    idxs_mostly_land = np.array([i for i in range(low_res.shape[0]) if is_mostly_land(low_res[i])])
     filtered_low_res = low_res[idxs_mostly_land]
     filtered_high_res = high_res[idxs_mostly_land]
     filtered_metadata_list = metadata_list[idxs_mostly_land]
@@ -78,11 +78,11 @@ def filter_water(low_res, high_res, metadata_list):
 '''
 TODO: Set threshold appropiately
 '''
-def is_mostly_water(patch, percent_threshold=50., water_threshold=-3000):
+def is_mostly_land(patch, percent_threshold=50., water_threshold=-3000):
     plt.imshow(patch)
     tot_pixels = patch.shape[0] * patch.shape[1]
-    num_land_pixels = np.sum(patch <= water_threshold)
-    if num_land_pixels/tot_pixels * 100 >= percent_threshold:
+    num_water_pixels = np.sum(patch <= water_threshold)
+    if num_water_pixels/tot_pixels * 100 >= percent_threshold:
         return False
     else: 
         return True
@@ -116,9 +116,9 @@ def make_patches_and_filter_all_cells(low_res_cells, high_res_cells, patch_size,
             with open(os.path.join(output_dir, savename) + '.pkl', 'wb') as f:
                 pickle.dump((low_res_patches, high_res_patches, metadata), f)
         else:
-            all_patches_low.extend(low_res_patches)
-            all_patches_high.extend(high_res_patches)
-            metadata_all.extend(metadata_low)
+            all_patches_low.append(low_res_patches)
+            all_patches_high.append(high_res_patches)
+            metadata_all.append(metadata)
     if save_per_year:
         all_patches_low = np.concatenate(all_patches_low)
         all_patches_high = np.concatenate(all_patches_high)
@@ -144,8 +144,13 @@ def run_extract_patches(high_res_cell_dir, low_res_cell_dir, patch_size, output_
         high_res_cells = []
         low_res_cells = []
         dates = []
-        cell_ids = [] 
-        for high_res_cell, low_res_cell in zip(os.listdir(os.path.join(high_res_cell_dir, year)), os.listdir(os.path.join(low_res_cell_dir, year))):
+        cell_ids = []
+        if not(os.path.isdir(os.path.join(high_res_cell_dir, year))):
+            continue
+        sorted_files_high_res = sorted(os.listdir(os.path.join(high_res_cell_dir, year)))
+        sorted_files_low_res = sorted(os.listdir(os.path.join(low_res_cell_dir, year)))
+        assert(check_sorted(sorted_files_high_res, sorted_files_low_res))
+        for high_res_cell, low_res_cell in zip(sorted_files_high_res, sorted_files_low_res):
             high_res_cells.append(load_data_from_files(os.path.join(high_res_cell_dir, year, high_res_cell)))
             low_res_cells.append(load_data_from_files(os.path.join(low_res_cell_dir, year, low_res_cell)))
             dates.append(high_res_cell.split('.')[1][1:])
@@ -155,6 +160,7 @@ def run_extract_patches(high_res_cell_dir, low_res_cell_dir, patch_size, output_
         make_patches_and_filter_all_cells(np.array(low_res_cells), np.array(high_res_cells), patch_size, high_low_ratio, 1, output_dir, dates, cell_ids, save_per_year=True)  
     #Aggregate chunks further if desired-currently grouped per year
     #aggregate_chunks(output_dir)
+
 
 
 def view_patch(patch):
@@ -172,6 +178,15 @@ def test_extract_patches_single_cell(path_to_cell, patch_sizes):
     print(patches)
     view_patch(patches[20])
 
+def check_sorted(high_dir, low_dir):
+    is_sorted = True
+    for h, l in zip(high_dir, low_dir):
+        if not(h.split('.')[1][1:] == l.split('.')[1][1:]):
+            return False
+        if not(h.split('.')[2] == l.split('.')[2]):
+            return False
+    return is_sorted
+    
 def test_make_patches_and_filter_all_cells(path_to_low_res_dir, path_to_high_res_dir):
     low_res_cells = []
     high_res_cells = []
@@ -198,9 +213,6 @@ def test_make_patches_and_filter_all_cells(path_to_low_res_dir, path_to_high_res
     assert(test_low_res_patches.shape[1] == 200 and test_low_res_patches.shape[2] == 200)
     assert(test_high_res_patches.shape[1] == 400 and test_high_res_patches.shape[2] == 400)
     
-        
-        
-
 
 if __name__ == '__main__':
      #test_extract_patches_single_cell('/lv_scratch/scratch/pputzel/test_processed_data/250_res/MYD13Q1.A2004009.h08v05.006.2015154150430.hdf', [400])
@@ -208,6 +220,6 @@ if __name__ == '__main__':
     high_res_cell_dir = '/extra/graffc0/ndvi_superresolution/data/modis_ndvi/MYD13Q1.006/'
     low_res_cell_dir = '/extra/graffc0/ndvi_superresolution/data/modis_ndvi/MYD13A1.006/'
     output_dir =       '/extra/graffc0/ndvi_superresolution/data/modis_ndvi_processed'
-    patch_size = 200
+    patch_size = 150
     run_extract_patches(high_res_cell_dir, low_res_cell_dir, patch_size, output_dir, high_low_ratio=2)
 
