@@ -1,6 +1,8 @@
 class DataLoader:
     def __init__(self, hparams):
         self.te_percent = hparams['te_percent']
+        if hparams['years'] = 'all':
+            hparams['years'] = []
         self.years = hparams['years']
 
 
@@ -85,4 +87,7 @@ class DataLoader:
          
         return ((low_res_tr, high_res_tr, metadata_tr), (low_res_te, high_res_te, metadata_te))
     
-                
+def test_data_loader(per_year_dir):
+        fake_hparams = {'te_percent':.10, 'years':[2006, 2012]}
+        
+        dl = DataLoader()                
