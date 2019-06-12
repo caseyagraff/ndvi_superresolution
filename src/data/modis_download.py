@@ -45,7 +45,7 @@ class ModisDownloader:
 
     DATE_FMT = '%Y.%m.%d'
 
-    FILE_LIST_NAME = 'file_list.txt'
+    FILE_LIST_NAME = 'file_list.pkl'
 
     def __init__(self, cells, dates, save_dir):
         self.cells = cells
