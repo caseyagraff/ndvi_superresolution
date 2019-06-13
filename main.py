@@ -6,7 +6,7 @@ import click
 
 from src.data.modis_download import ModisDownloader, DEF_DOWNLOAD_CELLS, DEF_DOWNLOAD_DATES, MODIS_DOWNLOAD_DIR
 from src.utils.parameters import Parameters
-from src.methods import train
+from src.methods import train as tr
 
 @click.group()
 def cli():
@@ -25,10 +25,14 @@ def download(product):
 
 
 @click.command()
-@click.argument('param_file', type=click.Path()
+@click.argument('param_file', type=click.Path(exists=True))
 def train(param_file):
-    params = Parameters.parse(os.path.join(Parameters.config_dir, param_file))
-    train.train_model(params)
+    params = Parameters.parse(param_file)
+
+    print(f'Running Experiment: {params.general.experiment_name}\n')
+    print('Params:', params)
+
+    tr.train_model(params)
     
 
 cli.add_command(download)

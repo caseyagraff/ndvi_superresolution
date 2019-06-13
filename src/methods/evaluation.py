@@ -6,5 +6,5 @@ class ModelEvaluator:
     def __init__(self, model):
         self.model = model
 
-    def evaluate(data):
+    def evaluate(self, data):
         raise NotImplementedError()

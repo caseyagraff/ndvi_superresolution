@@ -10,22 +10,25 @@ from . import evaluation
 
 def train_model(params):
     # Create save directory
-    model_results = results.Results(
-            params.results.save_dir,
+    model_results = results.Result(
+            params.results.results_dir,
+            params.general.experiment_name,
             params.results.overwrite,
     )
+
+    model_results.create_save_dir()
  
     # Set random seed
-    helper.set_random_seed(params.model.seed)
+    helper.set_random_seed(params.general.seed)
 
     # Load data
     x_train, x_test = data_loader.load_train_test(params.data.data_dir)
 
     # Create model
-    model = model_factory.ModelFactory.create_model(params.model)
+    model = model_factory.ModelFactory.create_model(params.model.model_name, params.model)
 
     # Create model trainer
-    model_trainer = trainer.ModelTrainer(
+    model_trainer = trainer.GanModelTrainer(
             model=model,
             params=params.train,
     )
@@ -38,9 +41,9 @@ def train_model(params):
 
     # Compute summary results
     model_evaluator = evaluation.ModelEvaluator(model=model)
-    results = model_evaluator.evaluate(data=x_test)
+    evaluation_results = model_evaluator.evaluate(data=x_test)
 
     # Save model and summary results
     model_results.save_model(model)
-    model_results.save_results(results)
+    model_results.save_results(evaluation_results)
 
