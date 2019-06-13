@@ -21,3 +21,4 @@ conda install click
 conda install beautifulsoup4
 conda install requests
 conda install tqdm
+conda install -c pytorch torchvision
