@@ -1,8 +1,8 @@
 '''
-Pixel-wise Mean Squared Error loss
+Loss functions used for training and evaluation.
 '''
 
-def select_perceptive_loss(loss_name, params):
+def select_content_loss(loss_name, params):
     if loss_name is None:
         return None
     elif loss_name=='l2':

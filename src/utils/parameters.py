@@ -22,6 +22,12 @@ DEFAULT_PARAMS = {
 
         'train': {
             'num_epochs': 1,
+            'device': 'cuda',
+            'learning_rate': 1e-4,
+            'content_loss': 'l2_pixel',
+            'content_loss_scale': 1e-3,
+            'batch_size': 16,
+            'shuffle': True,
         },
 
         'results': {

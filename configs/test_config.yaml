@@ -1,2 +1,3 @@
-model:
-    model_name: 'test_model'
+results:
+    overwrite: True
+

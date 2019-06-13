@@ -5,6 +5,10 @@ import os
 from pyhdf.SD import SD, SDC
 from pyhdf import HDF
 
+import tqdm
+
+PATCH_DIR = './data/modis_ndvi_processed/patches/'
+
 '''
 Load cell data from .hdf files. Automatically determines 250m vs 500m resolution.
 Input:
@@ -28,7 +32,6 @@ def load_data_from_files(filename):
             data_field = d
 
     ndvi_data = f.select(data_field)
-    print("NDVI dimensions: {}".format(ndvi_data.dimensions()))
     data = np.array(ndvi_data.get())
     return data
 
@@ -91,10 +94,11 @@ def is_mostly_land(patch, percent_threshold=50., water_threshold=-3000):
 makes patches for all cells and filters them. Saves a block for each cell in output dir, if you feed in data only from one year and
 set save_per_year to True it will save all the data from a single year into one chunk
 '''
-def make_patches_and_filter_all_cells(low_res_cells, high_res_cells, patch_size, low_res_amount, high_res_amount, output_dir, dates, cell_ids, save_per_year=False):
+def make_patches_and_filter_all_cells(low_res_cells, high_res_cells, patch_size, output_dir, 
+        dates, cell_ids, save_per_year=False):
     year = dates[0][0:4]
+
     if save_per_year:
-        print(dates, cell_ids)
         for d,date in enumerate(dates):
             if date[0:4] != year:
                 print(date, year)
@@ -103,29 +107,46 @@ def make_patches_and_filter_all_cells(low_res_cells, high_res_cells, patch_size,
         all_patches_low = []
         all_patches_high = []
         metadata_all = []
-    high_res_factor = low_res_amount//high_res_amount
+
+    assert(high_res_cells[0].shape[0] % low_res_cells[0].shape[0] == 0)
+    high_res_factor = high_res_cells[0].shape[0] // low_res_cells[0].shape[0]
+
     for c, low_res_cell in enumerate(low_res_cells):
         low_res_patches, metadata_low = extract_patches_single_cell(low_res_cell, patch_size, dates[c], cell_ids[c])
         high_res_patches, metadata_high = extract_patches_single_cell(high_res_cells[c], high_res_factor * patch_size, dates[c], cell_ids[c])
         assert((metadata_low == metadata_high).all())
+
         low_res_patches, high_res_patches, metadata = filter_water(low_res_patches, high_res_patches, metadata_low)
-        if not(save_per_year):
-            #Saving
+
+        if not save_per_year:
             savename = cell_ids[c] + '_patch_size=' + str(patch_size) + '_date=' + str(dates[c])
-           #savename_high = 'high_' + cell_ids[c] + 'patch_size=' + str(patch_size) + '_date=' + str(dates[c])
+
             with open(os.path.join(output_dir, savename) + '.pkl', 'wb') as f:
                 pickle.dump((low_res_patches, high_res_patches, metadata), f)
+
         else:
             all_patches_low.append(low_res_patches)
             all_patches_high.append(high_res_patches)
             metadata_all.append(metadata)
+
     if save_per_year:
         all_patches_low = np.concatenate(all_patches_low)
         all_patches_high = np.concatenate(all_patches_high)
+
         metadata_all = np.concatenate(metadata_all)
-        savename = 'patch_size=' + str(patch_size) + '_year=' + str(dates[0][0:4])
-        with open(os.path.join(output_dir, savename) + '.pkl', 'wb') as f:
-            pickle.dump((all_patches_low, all_patches_high, metadata_all), f)
+
+        # Create save path
+        save_name = f'patch_size_{patch_size}_year_{dates[0][0:4]}.npz'
+        save_path = os.path.join(output_dir, str(patch_size), save_name)
+
+        # Create dir if it doesn't exist
+        save_dir = os.path.dirname(save_path)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        #with open(save_path, 'wb') as f:
+        #    pickle.dump((all_patches_low, all_patches_high, metadata_all), f)
+        np.savez(save_path, lo_res=all_patches_low, hi_res=all_patches_high, meta=metadata_all)
 
 '''
 TODO: make function which aggregates the per cell patch data into larger chunks containing data 
@@ -135,29 +156,35 @@ def aggregate_chunks():
     pass    
         
          
-def run_extract_patches(high_res_cell_dir, low_res_cell_dir, patch_size, output_dir, high_low_ratio=2):
+def run_extract_patches(low_res_cell_dir, high_res_cell_dir, patch_size, output_dir):
     high_res_cell_years = os.listdir(high_res_cell_dir)
     low_res_cell_years = os.listdir(low_res_cell_dir)
 
-    
-    for year in high_res_cell_years:
+    for year in tqdm.tqdm(high_res_cell_years):
         high_res_cells = []
         low_res_cells = []
         dates = []
         cell_ids = []
-        if not(os.path.isdir(os.path.join(high_res_cell_dir, year))):
+
+        if not os.path.isdir(os.path.join(high_res_cell_dir, year)):
             continue
+
         sorted_files_high_res = sorted(os.listdir(os.path.join(high_res_cell_dir, year)))
         sorted_files_low_res = sorted(os.listdir(os.path.join(low_res_cell_dir, year)))
+
         assert(check_sorted(sorted_files_high_res, sorted_files_low_res))
+
         for high_res_cell, low_res_cell in zip(sorted_files_high_res, sorted_files_low_res):
             high_res_cells.append(load_data_from_files(os.path.join(high_res_cell_dir, year, high_res_cell)))
             low_res_cells.append(load_data_from_files(os.path.join(low_res_cell_dir, year, low_res_cell)))
             dates.append(high_res_cell.split('.')[1][1:])
             cell_ids.append(high_res_cell.split('.')[2])
+
         #now process all the cells per year using make_patches_and_filter_all_cells, also saves them
         #year_output_dir = os.path.join(output_dir, str(year))
-        make_patches_and_filter_all_cells(np.array(low_res_cells), np.array(high_res_cells), patch_size, high_low_ratio, 1, output_dir, dates, cell_ids, save_per_year=True)  
+        make_patches_and_filter_all_cells(np.array(low_res_cells), np.array(high_res_cells), patch_size, output_dir,
+                dates, cell_ids, save_per_year=True)  
+
     #Aggregate chunks further if desired-currently grouped per year
     #aggregate_chunks(output_dir)
 
