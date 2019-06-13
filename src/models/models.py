@@ -120,7 +120,7 @@ class Discriminator(torch.nn.Module):
 ''' Super-Resolution GAN model class.'''
 
 
-class SuperResolutionGAN:
+class SuperResolutionGAN(torch.nn.Module):
 
     def __init__(self, low_resolution_dim, high_resolution_dim, **kwargs):
         super(SuperResolutionGAN, self).__init__()
@@ -132,6 +132,33 @@ class SuperResolutionGAN:
 
         for k, v in kwargs.items():
             self.k = v
+
+        print("GAN structure: ")
+        print(self)
+
+    def forward(self):
+        raise NotImplementedError()
+
+    def save(self, filename, epochs, generator_optimizer, discriminator_optimizer, loss):
+        checkpoint = {
+            'epoch': epochs,
+            'model_state_dict': self.state_dict(),
+            'generator_optimizer_state_dict': generator_optimizer.state_dict(),
+            'discriminator_optimizer_state_dict': discriminator_optimizer.state_dict(),
+            'loss': loss
+        }
+        torch.save(checkpoint, filename)
+        print("Successfully saved model to path: {}".format(filename))
+
+    def load(self, filename, generator_optimizer, discriminator_optimizer, loss):
+        checkpoint = torch.load(filename)
+        self.load_state_dict(checkpoint['model_state_dict'])
+        generator_optimizer.load_state_dict(checkpoint['generator_optimizer_state_dict'])
+        discriminator_optimizer.load_state_dict(checkpoint['discriminator_optimizer_state_dict'])
+        loss = checkpoint['loss']
+        epochs = checkpoint['epochs']
+
+        return epochs, generator_optimizer, discriminator_optimizer, loss
 
 
 class Flatten(torch.nn.Module):
