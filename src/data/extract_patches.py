@@ -163,10 +163,10 @@ def run_extract_patches(high_res_cell_dir, low_res_cell_dir, patch_size, output_
 
 
 
-def view_patch(patch):
+def view_patch(patch,savename='patch_example.png'):
     plt.imshow(patch)
     plt.colorbar()
-    plt.savefig('patch_example.png')
+    plt.savefig(savename)
     
 def test_extract_patches_single_cell(path_to_cell, patch_sizes):
     cell = load_data_from_files(path_to_cell)
