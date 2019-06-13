@@ -1,4 +1,5 @@
 import torch
+import torchvision
 from torch.nn import MSELoss, BCELoss
 
 
@@ -32,14 +33,36 @@ Pixel-wise Mean Squared Error based on VGG (trained) feature maps.
 
 
 def vgg_loss(params=None):
-    def _vgg_loss(real_high_res, fake_high_res, layer_num=2):
-        raise NotImplementedError()
+    vgg_net = torchvision.models.vgg19(pretrained=True, progress=True)  # VGG19 sans batch-normalization
+    layer = 5
+    if params is not None:
+        layer = params.layer
+
+    model = torch.nn.Sequential(*list(vgg_net.features.chilren())[:layer])
+    loss_fn = MSELoss()
+
+    def _vgg_loss(real_high_res, fake_high_res):
+        with torch.no_grad():
+            model.eval()
+            real_high_res_out = model(real_high_res)
+            fake_high_res_out = model(fake_high_res)
+
+            return loss_fn(real_high_res_out, fake_high_res_out)
 
     return _vgg_loss
 
 
-def perceptual_loss():
-    raise NotImplementedError()
+def perceptual_loss(params=None):
+    content_loss_fn = select_content_loss(params.loss_name)
+    generator_loss = gan_loss()
+    alpha = 0.001
+    if params is not None:
+        alpha = params.alpha
+
+    def _perceptual_loss(real_high_res, fake_high_res):
+        return content_loss_fn(real_high_res, fake_high_res) + alpha * generator_loss(real_high_res, fake_high_res)[0]
+
+    return _perceptual_loss
 
 
 '''
