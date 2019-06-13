@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LeakyReLU, PReLU, Conv2d, BatchNorm2d, PixelShuffle, Linear, Sigmoid
-from src.utils.loss_functions import mse_loss
+
 
 class ResidualBlock(torch.nn.Module):
     def __init__(self):
@@ -35,7 +35,7 @@ class Generator(torch.nn.Module):
         self.conv1 = Conv2d(1, 64, kernel_size=9, padding=4)
         self.prelu = PReLU()
 
-        self.layers = self.get_residual_blocks(num_blocks)
+        self.layers = self._get_residual_blocks(num_blocks)
 
         self.conv2 = Conv2d(64, 64, kernel_size=3, padding=1)
         self.bn2 = BatchNorm2d(64)
@@ -48,7 +48,7 @@ class Generator(torch.nn.Module):
 
         self.conv5 = Conv2d(64, 1, kernel_size=9, padding=4)
 
-    def get_residual_blocks(self, num_blocks):
+    def _get_residual_blocks(self, num_blocks):
         layers = []
         for i in range(num_blocks):
             layers.append(ResidualBlock())
@@ -92,7 +92,7 @@ class DiscriminatorBlock(torch.nn.Module):
 
 
 class Discriminator(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, high_res):
         super(Discriminator, self).__init__()
         print("Initialized discriminator network..")
         self.num_blocks = 3
@@ -107,7 +107,7 @@ class Discriminator(torch.nn.Module):
             DiscriminatorBlock(256, 512, 1, 1),
             DiscriminatorBlock(512, 512, 2, 1),
             Flatten(),
-            Linear(320000, 1024),
+            Linear(2*high_res*high_res, 1024),
             LeakyReLU(),
             Linear(1024, 1),
             Sigmoid()
@@ -120,33 +120,18 @@ class Discriminator(torch.nn.Module):
 ''' Super-Resolution GAN model class.'''
 
 
-class SuperResolutionGAN(torch.nn.Module):
-    # default parameters used in original paper
-    batch_size = None
-    num_generator_steps = None
-    num_discriminator_steps = None
-    num_epochs = 100000
-    generator = None
-    discriminator = None
-    learning_rate = 0.00001
+class SuperResolutionGAN:
 
-    def __init__(self):
+    def __init__(self, low_resolution_dim, high_resolution_dim, **kwargs):
         super(SuperResolutionGAN, self).__init__()
-        print("Initialized SR-GAN model..")
+        print("Initializing SR-GAN model.....")
+        self.lr_dim = low_resolution_dim
+        self.hr_dim = high_resolution_dim
+        self.generator = Generator()
+        self.discriminator = Discriminator(high_resolution_dim)
 
-    def forward(self, x):
-        generator = Generator()
-        sample_high_res = generator.forward(x)
-
-        discriminator = Discriminator()
-        pred = discriminator.forward(sample_high_res)
-        print("Discriminator predictions: {}".format(pred))
-
-    def test(self):
-        raise NotImplementedError
-
-    def run(self):
-        pass
+        for k, v in kwargs.items():
+            self.k = v
 
 
 class Flatten(torch.nn.Module):
