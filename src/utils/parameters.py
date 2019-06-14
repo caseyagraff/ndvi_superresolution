@@ -30,7 +30,7 @@ DEFAULT_PARAMS = {
             'content_loss_scale': 1e-3,
             'batch_size': 16,
             'shuffle': True,
-            'vgg_layer': 5,
+            'vgg_layer': 35,
         },
 
         'results': {

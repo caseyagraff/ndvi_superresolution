@@ -40,7 +40,7 @@ Pixel-wise Mean Squared Error based on VGG (trained) feature maps.
 
 def vgg_loss(params=None):
     vgg_net = torchvision.models.vgg19(pretrained=True, progress=True)  # VGG19 sans batch-normalization
-    layer = 5
+    layer = 35
     if params is not None:
         layer = params.vgg_layer
 
