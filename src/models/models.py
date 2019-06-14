@@ -30,7 +30,7 @@ class ResidualBlock(torch.nn.Module):
 class GeneratorFull(torch.nn.Module):
 
     def __init__(self, num_blocks=1):
-        super(Generator, self).__init__()
+        super().__init__()
         print("Initialized generator network..")
         self.conv1 = Conv2d(1, 64, kernel_size=9, padding=4)
         self.prelu = PReLU()
@@ -73,13 +73,12 @@ class GeneratorFull(torch.nn.Module):
         out = self.prelu(out)
 
         res = self.conv5(out)
-        print(res.shape)
         return res
 
 
 class DiscriminatorBlock(torch.nn.Module):
     def __init__(self, in_channels, out_channels, stride, padding):
-        super(DiscriminatorBlock, self).__init__()
+        super().__init__()
 
         self.model = torch.nn.Sequential(*[
             Conv2d(in_channels, out_channels, 3, stride, padding),
@@ -93,7 +92,7 @@ class DiscriminatorBlock(torch.nn.Module):
 
 class DiscriminatorFull(torch.nn.Module):
     def __init__(self, high_res):
-        super(Discriminator, self).__init__()
+        super().__init__()
         print("Initialized discriminator network..")
         self.num_blocks = 3
         self.model = torch.nn.Sequential(*[
@@ -122,8 +121,10 @@ class GeneratorSample(torch.nn.Module):
 
         self.model = torch.nn.Sequential(*[
             Conv2d(in_channels=1, out_channels=8, kernel_size=3, stride=1, padding=1),
+            Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=1),
+            Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1),
             PixelShuffle(upscale_factor=2),
-            Conv2d(in_channels=2, out_channels=1, kernel_size=3, stride=1, padding=1),
+            Conv2d(in_channels=8, out_channels=1, kernel_size=3, stride=1, padding=1),
         ])
 
     def forward(self, x):
@@ -148,13 +149,13 @@ class DiscriminatorSample(torch.nn.Module):
 ''' Super-Resolution GAN model class.'''
 class SuperResolutionGAN(torch.nn.Module):
 
-    def __init__(self, low_resolution_dim, high_resolution_dim, generator_cls, discriminator_cls, **kwargs):
+    def __init__(self, low_resolution_dim, high_resolution_dim, generator, discriminator, **kwargs):
         super(SuperResolutionGAN, self).__init__()
         print("Initializing SR-GAN model.....")
         self.lr_dim = low_resolution_dim
         self.hr_dim = high_resolution_dim
-        self.generator = generator_cls()
-        self.discriminator = discriminator_cls(high_resolution_dim)
+        self.generator = generator
+        self.discriminator = discriminator
 
         for k, v in kwargs.items():
             self.k = v

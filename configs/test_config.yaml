@@ -1,12 +1,15 @@
 data:
     data_path: './data/modis_ndvi_processed/aggregated/96_sampled_002.npz'
 model:
-    model_name: sample_gan
+    model_name: sr_gan
+    generator_blocks: 4
 train:
-    num_epochs: 10
+    num_epochs: 40
     content_loss: 'l2'
     content_loss_scale: 1.
     use_gan_loss: False
+    batch_size: 16
+    learning_rate: .0001
 results:
     overwrite: True
 

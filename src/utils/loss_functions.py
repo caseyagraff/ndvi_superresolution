@@ -45,15 +45,19 @@ def vgg_loss(params=None):
         layer = params.vgg_layer
 
     model = torch.nn.Sequential(*list(vgg_net.features.children())[:layer])
+
+    for param in model.parameters():
+            param.requires_grad = False
+
     loss_fn = MSELoss()
 
     def _vgg_loss(real_high_res, fake_high_res):
-        with torch.no_grad():
-            model.eval()
-            real_high_res_out = model(real_high_res)
-            fake_high_res_out = model(fake_high_res)
+        model.eval()
+        real_high_res_out = model(torch.cat((real_high_res, real_high_res, real_high_res), dim=1))
+        fake_high_res_out = model(torch.cat((fake_high_res, fake_high_res, fake_high_res), dim=1))
+        model.train()
 
-            return loss_fn(real_high_res_out, fake_high_res_out)
+        return loss_fn(real_high_res_out, fake_high_res_out)
 
     return _vgg_loss
 

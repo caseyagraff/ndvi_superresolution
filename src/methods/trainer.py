@@ -28,9 +28,9 @@ class GanModelTrainer:
 
         if self.params.use_gan_loss:
             self.gan_loss = loss_functions.gan_loss(params)
-            self.discrim_optimizer = torch.optim.Adam(self.generator.parameters(), self.params.learning_rate)
+            self.discrim_optimizer = torch.optim.Adam(self.discriminator.parameters(), self.params.learning_rate)
 
-        self.gen_optimizer = torch.optim.Adam(self.discriminator.parameters(), self.params.learning_rate)
+        self.gen_optimizer = torch.optim.Adam(self.generator.parameters(), self.params.learning_rate)
 
         self.content_loss = loss_functions.select_content_loss(self.params.content_loss, self.params)
 
@@ -75,6 +75,9 @@ class GanModelTrainer:
                 # Compute content loss
                 gen_loss += self.params.content_loss_scale * self.content_loss(x_high_gen, x_high)
 
+                # Compute error
+                train_pixel_err += loss_functions.mse_loss()(x_high_gen, x_high)
+
                 # Track total epoch loss for output
                 discrim_loss_total += discrim_loss
                 gen_loss_total += gen_loss
@@ -90,12 +93,9 @@ class GanModelTrainer:
                 gen_loss.backward(retain_graph=True)
                 self.gen_optimizer.step()
 
-                # Compute error
-                train_pixel_err += loss_functions.mse_loss()(x_high, x_high_gen)
-
             # === Output === 
             duration_sec = time.time() - start_time
-            output_str = f'Epoch {self.epoch} ({duration_sec:.2f} seconds) - Train Loss: ({discrim_loss.item():.2f}, {gen_loss.item():.2f}), Train Err: {train_pixel_err.item():.2f}'
+            output_str = f'Epoch {self.epoch} ({duration_sec:.2f} seconds) - Train Loss: ({discrim_loss_total.item():.3f}, {gen_loss_total.item():.3f}), Train Err: {train_pixel_err.item():.3f}'
 
             # Compute "validation" loss
             if val_data:

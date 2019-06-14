@@ -18,6 +18,7 @@ DEFAULT_PARAMS = {
 
         'model': {
             'model_name': 'sr_gan',
+            'generator_blocks': 4,
         },
 
         'train': {

@@ -8,12 +8,14 @@ class ModelFactory:
     @staticmethod
     def create_model(model_name, model_params, low_res_dim, high_res_dim):
         if model_name == "sr_gan":
-            generator, discriminator = models.GeneratorFull, models.DiscriminatorFull
+            generator= models.GeneratorFull(model_params.generator_blocks)
+            discriminator  = models.DiscriminatorFull(high_res_dim)
+
             return models.SuperResolutionGAN(low_res_dim, high_res_dim, 
                     generator, discriminator)
 
         elif model_name == 'sample_gan':
-            generator, discriminator = models.GeneratorSample, models.DiscriminatorSample
+            generator, discriminator = models.GeneratorSample(), models.DiscriminatorSample(high_res_dim)
             return models.SuperResolutionGAN(low_res_dim, high_res_dim, 
                     generator, discriminator)
 
