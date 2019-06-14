@@ -56,7 +56,7 @@ def train(param_file):
     """
     params = Parameters.parse(param_file)
 
-    print(f'Running Experiment: {params.general.experiment_name}\n')
+    print(f'Running Experiment: {params.general.experiment_name}')
     print('Params:', params)
 
     tr.train_model(params)

@@ -13,7 +13,7 @@ DEFAULT_PARAMS = {
         },
 
         'data': {
-            'data_dir': './data/modis_ndvi_processed/',
+            'data_path': './data/modis_ndvi_processed/aggregated/96.npz',
         },
 
         'model': {
@@ -24,10 +24,12 @@ DEFAULT_PARAMS = {
             'num_epochs': 1,
             'device': 'cuda',
             'learning_rate': 1e-4,
-            'content_loss': 'l2_pixel',
+            'use_gan_loss': True,
+            'content_loss': 'l2',
             'content_loss_scale': 1e-3,
             'batch_size': 16,
             'shuffle': True,
+            'vgg_layer': 5,
         },
 
         'results': {

@@ -5,6 +5,7 @@ Loss functions used for training and evaluation.
 import torch
 import torchvision
 from torch.nn import MSELoss, BCELoss
+from torch.autograd import Variable
 
 
 def select_content_loss(loss_name, params):
@@ -24,9 +25,10 @@ Pixel-wise Mean Squared Error loss.
 
 
 def mse_loss(params=None):
+    loss_fn = torch.nn.MSELoss()
+
     def _mse_loss(real_high_res, fake_high_res):
-        loss = torch.nn.MSELoss(real_high_res, fake_high_res)
-        return loss
+        return loss_fn(fake_high_res, real_high_res)
 
     return _mse_loss
 
@@ -40,9 +42,9 @@ def vgg_loss(params=None):
     vgg_net = torchvision.models.vgg19(pretrained=True, progress=True)  # VGG19 sans batch-normalization
     layer = 5
     if params is not None:
-        layer = params.layer
+        layer = params.vgg_layer
 
-    model = torch.nn.Sequential(*list(vgg_net.features.chilren())[:layer])
+    model = torch.nn.Sequential(*list(vgg_net.features.children())[:layer])
     loss_fn = MSELoss()
 
     def _vgg_loss(real_high_res, fake_high_res):
@@ -82,22 +84,26 @@ Output:
 
 
 def gan_loss(params=None):
+    loss_fn = BCELoss()
+
     def _gan_loss(real_high_res, fake_high_res, discriminator):
         num_real = len(real_high_res)
         num_fake = len(fake_high_res)
 
         batch_size = num_real + num_fake
 
-        x = torch.cat(real_high_res, fake_high_res)
+        x = torch.cat((real_high_res, fake_high_res))
         y = torch.zeros(batch_size)
+
         # set y = 1 for real data-set images
         y[:num_real] = 1
+
         y_predict = discriminator(x)
 
-        discriminator_loss = BCELoss()(y, y_predict)
+        discriminator_loss = loss_fn(y_predict.squeeze(), y)
 
         # compute generator loss function only for fake images
-        generator_loss = -torch.log(y_predict[num_real:])
+        generator_loss = (-torch.log(y_predict[num_real:])).mean()
 
         return discriminator_loss, generator_loss
 

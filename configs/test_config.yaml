@@ -1,3 +1,12 @@
+data:
+    data_path: './data/modis_ndvi_processed/aggregated/96_sampled_002.npz'
+model:
+    model_name: sample_gan
+train:
+    num_epochs: 10
+    content_loss: 'l2'
+    content_loss_scale: 1.
+    use_gan_loss: False
 results:
     overwrite: True
 

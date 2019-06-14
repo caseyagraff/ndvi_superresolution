@@ -1,3 +1,5 @@
+import os
+
 def load_train_test(data_dir):
     with open(os.path.join(data_dir, 'high_res_te.pkl'), 'rb') as f:
         high_res_te = pickle.load(f)

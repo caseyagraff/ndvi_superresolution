@@ -60,6 +60,26 @@ class AggregatedData:
 
         return AggregatedData(data_tr, data_te)
 
+    def sample(self, fraction):
+        """
+        Sample a fraction of the train and test data.
+        """
+        num_samples_tr = int(fraction * len(self.data_tr.low_res))
+        data_tr = DataTriple(
+                self.data_tr.low_res[:num_samples_tr], 
+                self.data_tr.high_res[:num_samples_tr],
+                self.data_tr.metadata[:num_samples_tr]
+        )
+
+        num_samples_te = int(fraction * len(self.data_te.low_res))
+        data_te = DataTriple(
+                self.data_te.low_res[:num_samples_te], 
+                self.data_te.high_res[:num_samples_te],
+                self.data_te.metadata[:num_samples_te]
+        )
+
+        return AggregatedData(data_tr, data_te)
+
     def save(self, save_path):
         save_dir = os.path.dirname(save_path)
         if not os.path.exists(save_dir):

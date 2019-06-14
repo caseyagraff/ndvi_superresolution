@@ -5,6 +5,7 @@ Saving model results.
 import os
 import shutil
 
+import yaml
 import torch
 
 class Result:
@@ -18,24 +19,30 @@ class Result:
 
     def create_save_dir(self):
         if not os.path.exists(self.save_dir):
-            os.makedirs(self.save_dir)
-            os.makedirs(os.path.join(self.save_dir, self.sample_dir))
-
+            pass
         elif self.overwrite:
             shutil.rmtree(self.save_dir)
-
         else:
             raise Exception(f'Save directory "{self.save_dir}" already exists and overwrite is false.')
+
+        os.makedirs(self.save_dir)
+        os.makedirs(os.path.join(self.save_dir, self.sample_dir))
 
     def save_results(self, results):
         results_save_path = os.path.join(self.save_dir, self.results_file_name)
 
-        with open(results_save_path, 'wb') as f_out:
+        with open(results_save_path, 'w') as f_out:
             yaml.dump(results, f_out, default_flow_style=False)
 
-    def save_model(self, model):
+    def save_model(self, model, model_train_state_dict):
         model_save_path = os.path.join(self.save_dir, self.model_file_name)
-        model.save(model_save_path)
+        model.save(
+                model_save_path, 
+                model_train_state_dict['epoch'], 
+                model_train_state_dict['gen_optimizer'], 
+                model_train_state_dict['discrim_optimizer'], 
+                model_train_state_dict['loss'], 
+        )
 
     def load_results(self):
         results_save_path = os.path.join(self.save_dir, self.results_file_name)
