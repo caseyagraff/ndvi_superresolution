@@ -170,3 +170,4 @@ venv.bak/
 /data
 .nfs*
 /results
+*.swp

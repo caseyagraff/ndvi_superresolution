@@ -9,11 +9,14 @@ import yaml
 import torch
 from src.models import model_factory 
 
+from ..models import model_factory
+
 class Result:
     results_file_name = 'results.yaml'
-    model_file_name = 'model.pt'
+    model_file_name = 'model_%s.pt'
     sample_dir = 'samples/'
     eval_file_name = 'eval.yaml'
+    model_dir = 'models/'
 
     def __init__(self, results_dir, experiment_name, overwrite=False):
         self.save_dir = os.path.join(results_dir, experiment_name)
@@ -29,6 +32,7 @@ class Result:
 
         os.makedirs(self.save_dir)
         os.makedirs(os.path.join(self.save_dir, self.sample_dir))
+        os.makedirs(os.path.join(self.save_dir, self.model_dir))
 
     def save_results(self, results, save_eval_results=False):
         if not(save_eval_results):
@@ -42,7 +46,7 @@ class Result:
                 yaml.dump(results, f_out, default_flow_style=False)
 
     def save_model(self, model, model_train_state_dict):
-        model_save_path = os.path.join(self.save_dir, self.model_file_name)
+        model_save_path = os.path.join(self.save_dir, self.model_dir, self.model_file_name % model_train_state_dict['epoch'])
         model.save(
                 model_save_path, 
                 model_train_state_dict['epoch'], 
@@ -57,10 +61,19 @@ class Result:
         with open(results_save_path, 'rb') as f_in:
             return yaml.save_load(f_in)
 
+<<<<<<< HEAD
     def load_model(self, model_params, low_res_data_dim, high_res_data_dim):
         model = model_factory.ModelFactory.create_model(model_params.model_name, model_params, low_res_data_dim, high_res_data_dim)
+=======
+    def load_model(self, model_params, low_res_dim, high_res_dim, epoch):
+        model = model_factory.ModelFactory.create_model(model_params.model_name, model_params, low_res_dim, high_res_dim)
+>>>>>>> 84286767b9b02e973b36d70a1d81f97748488d2d
 
-        model_save_path = os.path.join(self.save_dir, self.model_file_name)
+        model_save_path = os.path.join(self.save_dir, self.model_dir, self.model_file_name % epoch)
         model.load(model_save_path)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 84286767b9b02e973b36d70a1d81f97748488d2d
         return model

@@ -48,10 +48,11 @@ def train_model(params):
             model=model,
             params=params.train,
             sample_dir=sample_dir,
+            model_results=model_results,
     )
 
     # Run trainer
-    model_trainer.train(
+    train_results = model_trainer.train(
             data=data_tr,
             num_epochs=params.train.num_epochs,
     )
@@ -59,16 +60,8 @@ def train_model(params):
     # Compute summary results
     # model_evaluator = evaluation.ModelEvaluator(model=model)
     # evaluation_results = model_evaluator.evaluate(data=data_te)
-    evaluation_results = {'test_err': 0}
 
     # Save model and summary results
-    model_train_state_dict = {
-            'epoch': model_trainer.epoch, 
-            'gen_optimizer': model_trainer.gen_optimizer,
-            'discrim_optimizer': model_trainer.discrim_optimizer,
-            'loss': None
-    }
-
-    model_results.save_model(model, model_train_state_dict)
-    model_results.save_results(evaluation_results)
+    trainer.save_model(model_results, model, model_trainer)
+    model_results.save_results(train_results)
 

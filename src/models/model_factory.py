@@ -13,6 +13,12 @@ class ModelFactory:
 
             return models.SuperResolutionGAN(low_res_dim, high_res_dim, 
                     generator, discriminator)
+        elif model_name == "siamese_gan":
+            generator = models.GeneratorFull(model_params.generator_blocks)
+            discriminator = models.DiscriminatorFullSiamese(high_res_dim)
+
+            return models.SuperResolutionGAN(low_res_dim, high_res_dim, 
+                    generator, discriminator)
 
         elif model_name == 'sample_gan':
             generator, discriminator = models.GeneratorSample(), models.DiscriminatorSample(high_res_dim)
