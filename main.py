@@ -9,6 +9,7 @@ from src.data.extract_patches import run_extract_patches, PATCH_DIR
 from src.data.aggregate_data import AggregatedData, AGGREGATED_DIR, DEF_TRAIN_SPLIT_FRAC
 from src.utils.parameters import Parameters
 from src.methods import train as tr
+from src.methods import evaluation as eval 
 
 MODIS_NDVI_PRODUCT_DICT = {
     '250': ModisDownloader.DATA_PRODUCT_250M,
@@ -61,6 +62,14 @@ def train(param_file):
 
     tr.train_model(params)
 
+@click.command()
+@click.argument('param_file', type=click.Path(exists=True))
+def evaluate(param_file):
+    params = Parameters.parse(param_file)
+    print(f'Evaluating Experiment: {params.general.experiment_name}')
+
+    eval.run_evaluation(params)
+    
     
 # Setup Click command group
 @click.group()
@@ -71,6 +80,7 @@ cli.add_command(download)
 cli.add_command(extract_patches)
 cli.add_command(aggregate_data)
 cli.add_command(train)
+cli.add_command(evaluate)
 
 if __name__ == '__main__':
     cli()

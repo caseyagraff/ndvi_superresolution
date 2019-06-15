@@ -1,7 +1,6 @@
 import torch
 from torch.nn import LeakyReLU, PReLU, Conv2d, BatchNorm2d, PixelShuffle, Linear, Sigmoid
 
-
 class ResidualBlock(torch.nn.Module):
     def __init__(self):
         super(ResidualBlock, self).__init__()
@@ -174,17 +173,23 @@ class SuperResolutionGAN(torch.nn.Module):
         torch.save(checkpoint, filename)
         print("Successfully saved model to path: {}".format(filename))
 
-    def load(self, filename, generator_optimizer, discriminator_optimizer, loss):
+    def load(self, filename, generator_optimizer=None, discriminator_optimizer=None):
         checkpoint = torch.load(filename)
         self.load_state_dict(checkpoint['model_state_dict'])
-        generator_optimizer.load_state_dict(checkpoint['generator_optimizer_state_dict'])
-        discriminator_optimizer.load_state_dict(checkpoint['discriminator_optimizer_state_dict'])
+
+        if generator_optimizer:
+            generator_optimizer.load_state_dict(checkpoint['generator_optimizer_state_dict'])
+
+        if discriminator_optimizer:
+            discriminator_optimizer.load_state_dict(checkpoint['discriminator_optimizer_state_dict'])
+
         loss = checkpoint['loss']
-        epochs = checkpoint['epochs']
+
+        epochs = checkpoint['epoch']
 
         return epochs, generator_optimizer, discriminator_optimizer, loss
 
 class Flatten(torch.nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
-        return x.view(batch_size, -1)
+        return x.view(batch_size, -1) 

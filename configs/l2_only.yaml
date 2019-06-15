@@ -1,0 +1,20 @@
+general:
+    experiment_name: l2_only
+data:
+    data_path: '/extra/graffc0/ndvi_superresolution/data/modis_ndvi_processed/aggregated/96_sampled_125.npz'
+model:
+    model_name: sr_gan
+    generator_blocks: 8
+train:
+    num_epochs: 50
+    content_loss: 'l2'
+    gan_loss_scale: .001
+    use_gan_loss: False
+    batch_size: 16
+    learning_rate: .0001
+    device: 'cuda:0'
+results:
+    overwrite: False
+eval:
+    checkpoint_epoch: 49
+

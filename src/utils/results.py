@@ -7,11 +7,13 @@ import shutil
 
 import yaml
 import torch
+from src.models import model_factory 
 
 class Result:
     results_file_name = 'results.yaml'
     model_file_name = 'model.pt'
     sample_dir = 'samples/'
+    eval_file_name = 'eval.yaml'
 
     def __init__(self, results_dir, experiment_name, overwrite=False):
         self.save_dir = os.path.join(results_dir, experiment_name)
@@ -28,11 +30,16 @@ class Result:
         os.makedirs(self.save_dir)
         os.makedirs(os.path.join(self.save_dir, self.sample_dir))
 
-    def save_results(self, results):
-        results_save_path = os.path.join(self.save_dir, self.results_file_name)
+    def save_results(self, results, save_eval_results=False):
+        if not(save_eval_results):
+            results_save_path = os.path.join(self.save_dir, self.results_file_name)
 
-        with open(results_save_path, 'w') as f_out:
-            yaml.dump(results, f_out, default_flow_style=False)
+            with open(results_save_path, 'w') as f_out:
+                yaml.dump(results, f_out, default_flow_style=False)
+        else:
+            eval_save_path = os.path.join(self.save_dir, self.eval_file_name)
+            with open(eval_save_path, 'w') as f_out:
+                yaml.dump(results, f_out, default_flow_style=False)
 
     def save_model(self, model, model_train_state_dict):
         model_save_path = os.path.join(self.save_dir, self.model_file_name)
@@ -50,8 +57,10 @@ class Result:
         with open(results_save_path, 'rb') as f_in:
             return yaml.save_load(f_in)
 
-    def load_model(self, model_params):
-        model = model_factory.ModelFactory.create_model(model_name.model_name, model_params)
+    def load_model(self, model_params, low_res_data_dim, high_res_data_dim):
+        model = model_factory.ModelFactory.create_model(model_params.model_name, model_params, low_res_data_dim, high_res_data_dim)
 
         model_save_path = os.path.join(self.save_dir, self.model_file_name)
         model.load(model_save_path)
+    
+        return model

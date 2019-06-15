@@ -73,7 +73,8 @@ class GanModelTrainer:
                     gen_loss += gen_gan_loss
 
                 # Compute content loss
-                gen_loss += self.params.content_loss_scale * self.content_loss(x_high_gen, x_high)
+                if self.content_loss is not None:
+                    gen_loss += self.params.content_loss_scale * self.content_loss(x_high_gen, x_high)
 
                 # Compute error
                 train_pixel_err += loss_functions.mse_loss()(x_high_gen, x_high)
@@ -118,7 +119,6 @@ class GanModelTrainer:
                         torchvision.utils.save_image(torch.tensor(val_data.high_res[0]).float(), real_sample_path_val)
 
                     self.generate_sample_image(val_data.low_res[0], f'val_sample_{self.epoch}.png')
-
 
     def compute_validation_loss(self, val_data):
         x_low_val_data, x_high_val_data = val_data.low_res, val_data.high_res
