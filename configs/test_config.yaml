@@ -16,4 +16,5 @@ train:
     device: 'cuda:0'
 results:
     overwrite: False
-
+    model_name: sample_gan
+    generator_blocks: 4
