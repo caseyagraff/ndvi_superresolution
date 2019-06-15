@@ -6,17 +6,65 @@ import torch
 import torchvision
 from torch.nn import MSELoss, BCELoss
 from torch.autograd import Variable
+from CannyEdgePytorch.net_canny import Net
 
 
 def select_content_loss(loss_name, params):
-    if loss_name is None:
+    if loss_name == "None":
         return None
     elif loss_name == 'l2':
         return mse_loss(params)
     elif loss_name == 'vgg':
         return vgg_loss(params)
+    elif loss_name == 'edge_loss':
+        return canny_edge_loss(params)
     else:
         raise ValueError(f'Content loss "{loss_name}" is not valid.')
+
+
+def canny_edge_loss(params=None):
+    loss_fn = torch.nn.MSELoss()
+    net = Net(threshold=params.threshold, use_cuda=False)
+    for param in net.parameters():
+        param.requires_grad = False
+
+    def _canny_edge_loss(real_high_res, fake_high_res):
+        net.eval()
+        batch_size = real_high_res.shape[0]
+        losses = torch.zeros(batch_size)
+        for i in range(batch_size):
+
+            real_high_res_out = _canny(torch.cat((real_high_res[i], real_high_res[i], real_high_res[i]), dim=0), i)
+            fake_high_res_out = _canny(torch.cat((fake_high_res[i], fake_high_res[i], fake_high_res[i]), dim=0), i)
+
+            losses[i] = loss_fn(fake_high_res_out, real_high_res_out)
+
+        return loss_fn(real_high_res, fake_high_res) + params.edge_loss_coef * torch.mean(losses)
+
+    def _canny(raw_img, idx, use_cuda=False):
+        batch = raw_img.unsqueeze(dim=0)
+
+        if use_cuda:
+            net.cuda()
+
+        data = batch
+        if use_cuda:
+            data = batch.cuda()
+
+        blurred_img, grad_mag, grad_orientation, thin_edges, thresholded, early_threshold = net(data)
+
+        # # print(thresholded.shape)
+        # filename = 'edge_detection_{}.png'.format(idx)
+        # plt.subplot(2,1,1)
+        # plt.imshow(raw_img.squeeze(dim=0)[0, :].detach().data.numpy(), cmap='gray')
+        # plt.subplot(2, 1, 2)
+        #
+        # plt.imshow(thresholded.squeeze(dim=0)[0, :].squeeze(dim=0).detach().data.numpy(), cmap='gray')
+        # plt.savefig(filename)
+
+        return grad_mag.squeeze(dim=0)
+
+    return _canny_edge_loss
 
 
 '''
@@ -102,13 +150,25 @@ def gan_loss(params=None):
         # set y = 1 for real data-set images
         y[:num_real] = 1
 
-        y_predict = discriminator(x)
+        # y_predict = discriminator(x)
 
-        discriminator_loss = loss_fn(y_predict.squeeze(), y)
+        y_predict_real = discriminator(real_high_res).squeeze()
+        y_predict_fake = discriminator(fake_high_res).squeeze()
+
+        real_contr = -torch.log(y_predict_real).mean()
+        fake_contr = -torch.log(1. - y_predict_fake).mean()
+        discriminator_loss = real_contr + fake_contr
+
+        # discriminator_loss = loss_fn(y_predict.squeeze(), y)
+        # discriminator_loss = -y*torch.log(y_predict.squeeze()) - (1-y)*torch.log(1 - y_predict.squeeze())
 
         # compute generator loss function only for fake images
-        generator_loss = (-torch.log(y_predict[num_real:])).mean()
+        # generator_loss = (-torch.log(y_predict.squeeze()[num_real:])).mean()
+        generator_loss = torch.log(1-y_predict_fake).mean()
 
         return discriminator_loss, generator_loss
 
     return _gan_loss
+
+
+
