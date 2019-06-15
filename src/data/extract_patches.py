@@ -2,8 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os
-from pyhdf.SD import SD, SDC
-from pyhdf import HDF
+try:
+    from pyhdf.SD import SD, SDC
+    from pyhdf import HDF
+except:
+    print('Warning - PyHdf not installed.')
 
 import tqdm
 

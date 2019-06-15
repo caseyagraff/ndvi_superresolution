@@ -10,8 +10,9 @@ import torch
 
 class Result:
     results_file_name = 'results.yaml'
-    model_file_name = 'model.pt'
+    model_file_name = 'model_%s.pt'
     sample_dir = 'samples/'
+    model_dir = 'models/'
 
     def __init__(self, results_dir, experiment_name, overwrite=False):
         self.save_dir = os.path.join(results_dir, experiment_name)
@@ -27,6 +28,7 @@ class Result:
 
         os.makedirs(self.save_dir)
         os.makedirs(os.path.join(self.save_dir, self.sample_dir))
+        os.makedirs(os.path.join(self.save_dir, self.model_dir))
 
     def save_results(self, results):
         results_save_path = os.path.join(self.save_dir, self.results_file_name)
@@ -35,7 +37,7 @@ class Result:
             yaml.dump(results, f_out, default_flow_style=False)
 
     def save_model(self, model, model_train_state_dict):
-        model_save_path = os.path.join(self.save_dir, self.model_file_name)
+        model_save_path = os.path.join(self.save_dir, self.model_dir, self.model_file_name % model_train_state_dict['epoch'])
         model.save(
                 model_save_path, 
                 model_train_state_dict['epoch'], 

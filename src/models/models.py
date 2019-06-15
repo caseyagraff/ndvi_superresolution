@@ -96,24 +96,56 @@ class DiscriminatorFull(torch.nn.Module):
         print("Initialized discriminator network..")
         self.num_blocks = 3
         self.model = torch.nn.Sequential(*[
-            Conv2d(1, 64, 3, 1),
+            Conv2d(1, 32, 3, 1),
             LeakyReLU(),
+            DiscriminatorBlock(32, 32, 2, 1),
+            DiscriminatorBlock(32, 64, 1, 1),
             DiscriminatorBlock(64, 64, 2, 1),
             DiscriminatorBlock(64, 128, 1, 1),
             DiscriminatorBlock(128, 128, 2, 1),
             DiscriminatorBlock(128, 256, 1, 1),
             DiscriminatorBlock(256, 256, 2, 1),
-            DiscriminatorBlock(256, 512, 1, 1),
-            DiscriminatorBlock(512, 512, 2, 1),
             Flatten(),
-            Linear(2*high_res*high_res, 1024),
+            Linear(1*high_res*high_res, 256),
             LeakyReLU(),
-            Linear(1024, 1),
+            Linear(256, 1),
             Sigmoid()
         ])
 
     def forward(self, x):
         return self.model(x)
+
+class DiscriminatorFullSiamese(torch.nn.Module):
+    def __init__(self, high_res):
+        super().__init__()
+        print("Initialized discriminator network..")
+        self.num_blocks = 3
+        self.model = torch.nn.Sequential(*[
+            Conv2d(1, 32, 3, 1),
+            LeakyReLU(),
+            DiscriminatorBlock(32, 32, 2, 1),
+            DiscriminatorBlock(32, 64, 1, 1),
+            DiscriminatorBlock(64, 64, 2, 1),
+            DiscriminatorBlock(64, 128, 1, 1),
+            DiscriminatorBlock(128, 128, 2, 1),
+            DiscriminatorBlock(128, 256, 1, 1),
+            DiscriminatorBlock(256, 256, 2, 1),
+            Flatten(),
+            Linear(1*high_res*high_res, 256),
+            LeakyReLU(),
+            ])
+
+        self.decider = torch.nn.Sequential(*[
+            Linear(512, 1),
+            Sigmoid(),
+        ])
+
+    def forward(self, x):
+        x1, x2 = x
+        a = self.model(x1)
+        b = self.model(x2)
+
+        return self.decider(torch.cat((a,b), dim=1))
 
 class GeneratorSample(torch.nn.Module):
     def __init__(self):
@@ -172,7 +204,6 @@ class SuperResolutionGAN(torch.nn.Module):
             'loss': loss
         }
         torch.save(checkpoint, filename)
-        print("Successfully saved model to path: {}".format(filename))
 
     def load(self, filename, generator_optimizer, discriminator_optimizer, loss):
         checkpoint = torch.load(filename)

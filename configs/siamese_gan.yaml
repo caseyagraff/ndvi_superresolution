@@ -6,8 +6,8 @@ model:
     model_name: siamese_gan
     generator_blocks: 8
 train:
-    num_epochs: 100
-    content_loss: 'None'
+    num_epochs: 50
+    content_loss: 'l2'
     gan_loss_scale: .001
     gan_loss: 'siamese'
     use_gan_loss: True

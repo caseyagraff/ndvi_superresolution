@@ -47,6 +47,15 @@ def aggregate_data(patch_size):
     aggregator = AggregatedData.create(patch_dir, AGGREGATED_DIR, DEF_TRAIN_SPLIT_FRAC)
     aggregator.save(os.path.join(AGGREGATED_DIR, str(patch_size)))
 
+@click.command()
+@click.argument('source_path', type=click.Path(exists=True))
+@click.argument('dest_path', type=click.Path())
+@click.argument('fraction', type=click.FLOAT)
+def sample_data(source_path, dest_path, fraction):
+    data = AggregatedData.load(source_path)
+    sampled_data = data.sample(fraction)
+    sampled_data.save(dest_path)
+
 
 @click.command()
 @click.argument('param_file', type=click.Path(exists=True))
@@ -71,6 +80,7 @@ cli.add_command(download)
 cli.add_command(extract_patches)
 cli.add_command(aggregate_data)
 cli.add_command(train)
+cli.add_command(sample_data)
 
 if __name__ == '__main__':
     cli()
