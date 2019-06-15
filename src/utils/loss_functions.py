@@ -7,7 +7,10 @@ import torch
 import torchvision
 from torch.nn import MSELoss, BCELoss
 from torch.autograd import Variable
-from CannyEdgePytorch.net_canny import Net
+try:
+    from CannyEdgePytorch.net_canny import Net
+except:
+    print('CannyEdgePytorch.net_canny not found')
 
 
 def select_content_loss(loss_name, params, device):

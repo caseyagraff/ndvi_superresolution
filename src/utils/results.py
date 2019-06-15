@@ -8,6 +8,8 @@ import shutil
 import yaml
 import torch
 
+from ..models import model_factory
+
 class Result:
     results_file_name = 'results.yaml'
     model_file_name = 'model_%s.pt'
@@ -52,8 +54,10 @@ class Result:
         with open(results_save_path, 'rb') as f_in:
             return yaml.save_load(f_in)
 
-    def load_model(self, model_params):
-        model = model_factory.ModelFactory.create_model(model_name.model_name, model_params)
+    def load_model(self, model_params, low_res_dim, high_res_dim, epoch):
+        model = model_factory.ModelFactory.create_model(model_params.model_name, model_params, low_res_dim, high_res_dim)
 
-        model_save_path = os.path.join(self.save_dir, self.model_file_name)
+        model_save_path = os.path.join(self.save_dir, self.model_dir, self.model_file_name % epoch)
         model.load(model_save_path)
+
+        return model

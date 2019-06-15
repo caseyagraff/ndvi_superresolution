@@ -8,7 +8,7 @@ from src.data.modis_download import ModisDownloader, DEF_DOWNLOAD_CELLS, DEF_DOW
 from src.data.extract_patches import run_extract_patches, PATCH_DIR
 from src.data.aggregate_data import AggregatedData, AGGREGATED_DIR, DEF_TRAIN_SPLIT_FRAC
 from src.utils.parameters import Parameters
-from src.methods import train as tr
+from src.methods import train as tr, run as run_model
 
 MODIS_NDVI_PRODUCT_DICT = {
     '250': ModisDownloader.DATA_PRODUCT_250M,
@@ -70,6 +70,18 @@ def train(param_file):
 
     tr.train_model(params)
 
+@click.command()
+@click.argument('param_file', type=click.Path(exists=True))
+def run(param_file):
+    """
+    Run model according to config.
+    """
+    params = Parameters.parse(param_file)
+
+    print('Params:', params)
+
+    run_model.run_model(params)
+
     
 # Setup Click command group
 @click.group()
@@ -81,6 +93,7 @@ cli.add_command(extract_patches)
 cli.add_command(aggregate_data)
 cli.add_command(train)
 cli.add_command(sample_data)
+cli.add_command(run)
 
 if __name__ == '__main__':
     cli()

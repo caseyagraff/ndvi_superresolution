@@ -39,6 +39,10 @@ DEFAULT_PARAMS = {
             'overwrite': False,
         },
 
+        'eval': {
+
+        }
+
 }
 
 class Data(dict):
